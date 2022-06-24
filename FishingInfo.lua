@@ -1,6 +1,6 @@
 _addon.author = "Czaryk"
 _addon.name = "FishingInfo"
-_addon.version = "2.0"
+_addon.version = "1.1.0"
 
 --> Services <--
 require("common")
@@ -10,8 +10,6 @@ local DefaultConfig = {
 	UI = {
 		Font = "Arial",
 		Size = 36,
-		TextColor = 4294967295,
-		BackgroundColor = 2147483648,
 		Position = { 0, 0 },
 	},
 	Colors = {
@@ -24,6 +22,8 @@ local DefaultConfig = {
 		Hook = { Enabled = true, File = "Hook.wav" },
 		Fail = { Enabled = true, File = "Fail.wav" },
 	},
+	Filter = true,
+	Visibility = false,
 }
 
 local Config = DefaultConfig
@@ -58,8 +58,6 @@ local CurrentFishColor = ""
 local CurrentFeeling = ""
 local CurrentFeelingColor = ""
 
-local Visible = false
-
 --> Functions <--
 --> Get the config and make the ui <--
 local function Loaded()
@@ -68,11 +66,11 @@ local function Loaded()
 	local UI = AshitaCore:GetFontManager():Create("FishingInfo_UI")
 	UI:SetFontFamily(Config.UI.Font)
 	UI:SetFontHeight(Config.UI.Size)
-	UI:SetColor(Config.UI.TextColor)
-	UI:GetBackground():SetColor(Config.UI.BackgroundColor)
 	UI:SetPositionX(Config.UI.Position[1])
 	UI:SetPositionY(Config.UI.Position[2])
 	UI:SetText("")
+	UI:GetBackground():SetColor(2147483648)
+	UI:SetColor(4294967295)
 	UI:SetVisibility(false)
 	UI:GetBackground():SetVisibility(true)
 	UI:SetBold(true)
@@ -89,7 +87,7 @@ local function UnLoaded()
 end
 
 --> Input commands <--
-local function Commands(Cmd, NType)
+local function Commands(Cmd)
 	local Arguments = Cmd:args()
 	local UI = AshitaCore:GetFontManager():Get("FishingInfo_UI")
 
@@ -99,25 +97,23 @@ local function Commands(Cmd, NType)
 
 	if Arguments[1]:lower() == "/fishinginfo" or Arguments[1]:lower() == "/fi" then
 		if #Arguments == 1 then
-			Visible = not Visible
+			Config.Visibility = not Config.Visibility
 
 			local Result
 
-			if Visible == true then
+			if Config.Visibility == true then
 				Result = "\30\02Enabled"
 			else
 				Result = "\30\68Disabled"
 			end
 
-			print(string.format("\31\200[\31\05FishingInfo\31\200] %s", Result))
+			print(string.format("\31\200[\31\05FishingInfo\31\200]\31\130Visibility: %s", Result))
 		elseif Arguments[2]:lower() == "on" then
-			Visible = true
-
-			print(string.format("\31\200[\31\05FishingInfo\31\200] %s", "\30\02Enabled"))
+			Config.Visibility = true
+			print(string.format("\31\200[\31\05FishingInfo\31\200]\31\130Visibility: %s", "\30\02Enabled"))
 		elseif Arguments[2]:lower() == "off" then
-			Visible = false
-
-			print(string.format("\31\200[\31\05FishingInfo\31\200] %s", "\30\68Disabled"))
+			Config.Visibility = false
+			print(string.format("\31\200[\31\05FishingInfo\31\200]\31\130Visibility: %s", "\30\68Disabled"))
 		elseif Arguments[2]:lower() == "pos" then
 			if #Arguments < 4 then
 				local X = "X:" .. UI:GetPositionX()
@@ -130,15 +126,28 @@ local function Commands(Cmd, NType)
 			else
 				print("\30\68Error Setting Postion")
 			end
+		elseif Arguments[2]:lower() == "filter" then
+			Config.Filter = not Config.Filter
+
+			local Result
+
+			if Config.Filter == true then
+				Result = "\30\02Enabled"
+			else
+				Result = "\30\68Disabled"
+			end
+
+			print(string.format("\31\200[\31\05FishingInfo\31\200]\31\130Filter: %s", Result))
 		elseif Arguments[2]:lower() == "help" then
-			local Commands = {
+			local HelpCommands = {
 				["/fi"] = "--Toggles on or off",
 				["/fi on"] = "--Toggles on",
 				["/fi off"] = "--Toggles off",
 				["/fi pos"] = "--Prints current position",
 				["/fi pos x y"] = "--Changes position to given numbers",
+				["/fi filter"] = "-- Toggles if chat about fish should be shown",
 			}
-			for Command, Description in pairs(Commands) do
+			for Command, Description in pairs(HelpCommands) do
 				print(
 					"\31\200[\31\05FishingInfo\31\200]\30\01 "
 						.. "\30\68Syntax:\30\02 "
@@ -178,37 +187,42 @@ local function play_alert_sound(name)
 end
 
 --> Checks the message's mode and then loop through the tables to set the fish and color and sound <--
-local function IncomingText(Mode, Message, ModifiedMode, ModifiedMessage, Blocked)
-	if Mode == 654 then
-		for Fish, Info in pairs(FishTypes) do
-			if Message:contains(Info.Text) then
-				CurrentFish = Fish
-				CurrentFishColor = Info.Color
-				play_alert_sound(Info.Sound)
-			end
-		end
-
-		for Feeling, Info in pairs(FeelingTypes) do
-			if Message:contains(Info.Text) then
-				CurrentFeeling = Feeling
-				CurrentFeelingColor = Info.Color
-			end
-		end
-
-		if Message:find("angler's") then
-			local FirstHalf = Message:sub(63)
-			local LastHalf = FirstHalf:gsub("[%p%d]+", "")
-			CurrentFeeling = "Angler's Senses"
-			CurrentFeelingColor = Config.Colors.Green
-			CurrentFish = LastHalf
+local function IncomingText(_, Message)
+	--> Fish types <--
+	for Fish, Info in pairs(FishTypes) do
+		if Message:contains(Info.Text) then
+			CurrentFish = Fish
+			CurrentFishColor = Info.Color
+			play_alert_sound(Info.Sound)
+			return Config.Filter
 		end
 	end
+
+	--> Feeling types <--
+	for Feeling, Info in pairs(FeelingTypes) do
+		if Message:contains(Info.Text) then
+			CurrentFeeling = Feeling
+			CurrentFeelingColor = Info.Color
+			return Config.Filter
+		end
+	end
+
+	--> Angler's senses <--
+	if Message:find("angler's") then
+		local FirstHalf = Message:sub(63)
+		local LastHalf = FirstHalf:gsub("[%p%d]+", "")
+		CurrentFeeling = "Angler's Senses"
+		CurrentFeelingColor = Config.Colors.Green
+		CurrentFish = LastHalf
+		return Config.Filter
+	end
+
 	return false
 end
 
 --> When user does /fish it resets the UI's text <--
-local function OutgoingText(Mode, Message, ModifiedMode, ModifiedMessage, Blocked)
-	if Mode == 1 or 2 and Message:contains("/fish") then
+local function OutgoingText(_, Message)
+	if Message:contains("/fish") then
 		CurrentFish = ""
 		CurrentFeeling = ""
 	end
@@ -218,7 +232,7 @@ end
 --> Show the UI to the player <--
 local function Render()
 	local UI = AshitaCore:GetFontManager():Get("FishingInfo_UI")
-	UI:SetVisibility(Visible)
+	UI:SetVisibility(Config.Visibility)
 	UI:SetText(string.format(
 		[[Fish: |c%s|%s|r
 Feeling: |c%s|%s|r]],
