@@ -1,6 +1,8 @@
 # Fishing Info
 Displays info about the current fish you're reeling in.
 
+Addon made for Wings private server with ashita.
+
 ![](images/Picture1.png)
 
 ![](images/Picture2.png)
