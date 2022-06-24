@@ -9,7 +9,7 @@ The addon works by reading the chat and displaying a certain text based on the c
 ```
 Commands: 
 
-/fi help - view all commands
+/fi help - View all commands
 
 /fi - Toggles on or off
 
