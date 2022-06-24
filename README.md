@@ -1,6 +1,5 @@
-# FishingInfo
-A addon for FFXI (wings) that displays what type of fish it is and the feeling associated with it.
-The addon works by reading the chat and displaying a certain text based on the chat.
+# Fishing Info
+Displays info about the current fish you're reeling in.
 
 ![](images/Picture1.png)
 
@@ -16,4 +15,6 @@ Commands:
 /fi pos - Prints the current position
 
 /fi pos x y - Changes position to  given position
+
+/fi filter - Toggle blocking chat about fish
 ```
