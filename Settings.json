@@ -1,0 +1,35 @@
+{
+    "Colors": {
+        "Brown": "744700",
+        "Green": "FF00FF00",
+        "Red": "FF0000",
+        "Yellow": "FFFFFF00"
+    },
+    "FishColors": {
+        "Brown": "744700",
+        "Green": "FF00FF00",
+        "Red": "FF0000",
+        "Yellow": "FFFFFF00"
+    },
+    "Sounds": {
+        "Fail": {
+            "Enabled": true,
+            "File": "Fail.wav"
+        },
+        "Hook": {
+            "Enabled": true,
+            "File": "Hook.wav"
+        },
+        "Win": {
+            "Enabled": true,
+            "File": "Win.wav"
+        }
+    },
+    "UI": {
+        "BackgroundColor": 2147483648,
+        "Font": "Arial",
+        "Position": [ 1065, 315 ],
+        "Size": 36,
+        "TextColor": 4294967295
+    }
+}
