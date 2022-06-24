@@ -9,11 +9,11 @@ The addon works by reading the chat and displaying a certain text based on the c
 ```
 Commands: 
 
-/fi or /fishinginfo help - view all commands
+/fi help - view all commands
 
-/fi or /fishinginfo - Toggles on or off
+/fi - Toggles on or off
 
-/fi or /fishinginfo pos - Prints the current position
+/fi pos - Prints the current position
 
-/fi or /fishinginfo pos x y - Changes position to  given position
+/fi pos x y - Changes position to  given position
 ```
